@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIFT UPGRADER</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#100d09;color:#fff;font-family:Arial,sans-serif}
+header{padding:20px 16px;background:#21170e;border-bottom:1px solid #76501c;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:21px;font-weight:900;color:#ffb51b}
+.balance{background:#382715;border:1px solid #95651b;border-radius:13px;padding:10px 14px;color:#ffd45b;font-weight:bold}
+main{padding:18px 15px;max-width:650px;margin:auto}
+.hero{padding:23px 18px;border-radius:20px;background:linear-gradient(130deg,#53360e,#17110c 70%);border:1px solid #9b671d}
+h1{font-size:27px;margin:0 0 8px}
+.muted{color:#b7a590;font-size:14px}
+.stats{display:flex;gap:9px;margin-top:18px}
+.stat{flex:1;background:#241a11;border-radius:12px;padding:12px 7px;text-align:center;border:1px solid #49351c}
+.stat b{display:block;color:#ffc13c;font-size:19px;margin-bottom:4px}
+h2{font-size:18px;margin:25px 0 13px}
+.gifts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gift{background:#241a12;border:1px solid #65471f;border-radius:15px;padding:15px;text-align:center}
+.gift .pic{font-size:43px}
+.gift b{display:block;margin:8px 0}
+.gift small{color:#c5a66f}
+button{border:0;border-radius:11px;background:linear-gradient(100deg,#ffb300,#ff7600);padding:12px 15px;font-weight:bold;color:#241406;font-size:15px;cursor:pointer}
+.gift button{width:100%;margin-top:12px}
+.upgrade{margin-top:18px;background:#21170f;border:1px solid #77501c;padding:18px;border-radius:17px;text-align:center}
+.upgrade button{width:100%;margin-top:14px}
+.result{margin-top:13px;color:#ffd45b;min-height:20px}
+.tabs{display:flex;gap:8px;margin-top:22px}
+.tabs button{flex:1;background:#302319;color:#eacb91}
+.tabs button.active{background:#f6a900;color:#211406}
+.panel{background:#20170f;padding:15px;border-radius:15px;margin-top:12px}
+.player{display:flex;justify-content:space-between;padding:11px 3px;border-bottom:1px solid #443322}
+footer{text-align:center;color:#907d65;font-size:12px;padding:30px}
+</style>
+</head>
+<body>
+<header><div class="logo">🎁 GIFT UPGRADER</div><div class="balance">⭐ <span id="balance">1000</span></div></header>
+<main>
+<section class="hero">
+<h1>GIFT UPGRADE</h1>
+<div class="muted">Улучшай виртуальные подарки и поднимайся в рейтинге!</div>
+<div class="stats">
+<div class="stat"><b id="upgrades">0</b><small>Апгрейды</small></div>
+<div class="stat"><b id="wins">0</b><small>Удачи</small></div>
+<div class="stat"><b id="level">1</b><small>Уровень</small></div>
+</div>
+</section>
+<h2>ПОПУЛЯРНЫЕ ПОДАРКИ</h2>
+<div class="gifts" id="gifts"></div>
+<section class="upgrade">
+<h2 style="margin-top:0">АПГРЕЙД ПОДАРКА</h2>
+<div style="font-size:48px">🎁</div>
+<div class="muted">Выбери подарок и попробуй улучшить его за виртуальные очки.</div>
+<button onclick="upgrade()">УЛУЧШИТЬ ЗА 100 ⭐</button>
+<div class="result" id="result">Выбери подарок выше</div>
+</section>
+<div class="tabs">
+<button class="active" onclick="showTab('rating',this)">Рейтинг</button>
+<button onclick="showTab('profile',this)">Профиль</button>
+</div>
+<div class="panel" id="panel">
+<h2 style="margin-top:0">ТОП ИГРОКОВ</h2>
+<div class="player"><span>🥇 Игрок 1</span><b>2500 ⭐</b></div>
+<div class="player"><span>🥈 Игрок 2</span><b>1800 ⭐</b></div>
+<div class="player"><span>🥉 Игрок 3</span><b>1200 ⭐</b></div>
+</div>
+</main>
+<footer>GIFT UPGRADER · DEMO VERSION · ВИРТУАЛЬНЫЕ ОЧКИ</footer>
+<script>
+const tg=window.Telegram?.WebApp;
+tg?.ready();
+tg?.expand();
+let balance=1000,upgrades=0,wins=0,selected=null;
+const items=[{name:"Подарок",icon:"🎁",price:100},{name:"Кольцо",icon:"💍",price:200},{name:"Алмаз",icon:"💎",price:300},{name:"Корона",icon:"👑",price:500}];
+const gifts=document.getElementById("gifts");
+items.forEach((item,i)=>{
+let el=document.createElement("div");
+el.className="gift";
+el.innerHTML='<div class="pic">'+item.icon+'</div><b>'+item.name+'</b><small>'+item.price+' ⭐</small><button>Выбрать</button>';
+el.querySelector("button").onclick=()=>{
+selected=item;
+document.getElementById("result").textContent="Выбран: "+item.name;
+document.querySelectorAll(".gift").forEach(x=>x.style.borderColor="#65471f");
+el.style.borderColor="#ffb51b";
+};
+gifts.appendChild(el);
+});
+function update(){
+document.getElementById("balance").textContent=balance;
+document.getElementById("upgrades").textContent=upgrades;
+document.getElementById("wins").textContent=wins;
+document.getElementById("level").textContent=1+Math.floor(upgrades/5);
+}
+function upgrade(){
+if(!selected){document.getElementById("result").textContent="Сначала выбери подарок!";return;}
+if(balance<100){document.getElementById("result").textContent="Недостаточно виртуальных очков.";return;}
+balance-=100;upgrades++;
+if(Math.random()<0.5){
+wins++;
+document.getElementById("result").textContent="Удача! "+selected.icon+" Подарок улучшен!";
+}else{
+document.getElementById("result").textContent="В этот раз не получилось. Попробуй ещё!";
+}
+update();
+}
+function showTab(tab,btn){
+document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+btn.classList.add("active");
+const panel=document.getElementById("panel");
+if(tab==="profile"){
+panel.innerHTML="<h2 style='margin-top:0'>МОЙ ПРОФИЛЬ</h2><div class='player'><span>Баланс</span><b>"+balance+" ⭐</b></div><div class='player'><span>Апгрейды</span><b>"+upgrades+"</b></div><div class='player'><span>Удачные улучшения</span><b>"+wins+"</b></div>";
+}else{
+panel.innerHTML="<h2 style='margin-top:0'>ТОП ИГРОКОВ</h2><div class='player'><span>🥇 Игрок 1</span><b>2500 ⭐</b></div><div class='player'><span>🥈 Игрок 2</span><b>1800 ⭐</b></div><div class='player'><span>🥉 Игрок 3</span><b>1200 ⭐</b></div>";
+}
+}
+</script>
+</body>
+  </html>
